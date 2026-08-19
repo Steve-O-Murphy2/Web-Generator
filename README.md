@@ -1,6 +1,11 @@
+# Python Static Site Generator
+
+A small static-site generator built with Python. It converts Markdown files into HTML pages using Python-Markdown and Jinja2, and copies static assets into the generated site.
+
 # What you'll build 
 
 In this tutorial, you'll build a simple static site generator (SSG) that converts Markdown files into complete HTML pages. 
+
 # Why an SSG? 
 
 Well, without an SSG you find yourself hand-coding HTML, which can be tedious and error-prone. This is especially true for large sites with many pages. What you do instead is create content using Markdown then convert the Markdown to HTML.
@@ -12,7 +17,7 @@ You will also learn a bit about Python libraries and some programming best pract
 To get the most out of this tutorial it would be nice to have Markdown coding experience. You can learn more about Markdown by visiting <https://www.markdownguide.org/>.
 # Project setup 
 
-Install Jinja2: `pip install Jinja2`
+Install libraries: `python -m pip install Markdown Jinja2`
 
 Create the following directories and files. You will add content to the files throughout the course of the tutorial.
 ``` shell
@@ -28,12 +33,13 @@ project root /
       page.html      
     build.py
 ```
+* **content/** Markdown source files 
+* **static/** Files copied unchanged to the output
+* **templates/** Jinja templates used to generate HTML 
+* **site/** Generated website files
+* **build.py** Build script
 
-* **content/** contains Markdown source files 
-* **templates/** contains the Jinja template 
-* **static/** contains assets copied unchanged 
-* **build.py** generates the site 
-* **site/** contains generated output 
+The `site` directory contains generated files, so you won't add files to it manually.
 
 # Simplest example
 
@@ -66,7 +72,6 @@ Console output:
 </ul>
 ```
 What just happened? Markdown is defined in the `markdown_text` variable and is embedded between two triple quotation marks, then passed to the `markdown.markdown` function, which converts a markdown string to HTML and return HTML as a Unicode string.
-
 
 <div style="width:80%; padding:6px; border-radius:5px; border:1px solid powderblue; border-left: 5px solid powderblue" >
 Note: If you are new to Python libraries, The dot (.) accesses an attribute of an object. Here, `markdown` is the package, and `markdown` after the dot is an attribute of that package that refers to the `markdown()` function.
@@ -104,13 +109,20 @@ Here’s a rundown of the script.
 3.	Prints the html.
 Cool, and pretty fun.
 If you are not familiar with `pathlib` and `Path`-- `Path` gives you an expressive and portable way to locate and work with files.
-Build one page 
+# Build one page 
+
+### What is Jinja?
+
+Think of a Jinja template as a blueprint for a web page. The template contains mostly ordinary HTML, but it also includes placeholders and simple expressions that Jinja replaces with real values when your program runs. Rather than writing a separate HTML file for every page, you define the shared layout once and let Jinja insert the unique content for each page during the build process.
 
 So far you have simply converted a simple Markdown file to HTML using the markdown library. Now you will use templates. You will create the template, add realistic content to a Markdown file, then process the file using markdown and jinja2 functionality.
 You will use functionality provided by jinja2.
 ## Create the Jinja template
 
-Open `page.html` and add the following to it:
+The template is HTML with embedded Jinja variables, which are enclosed in `{{}}`. 
+For example, this displays the document title  in the HTML `title` tag: `<title>{{ title }}</title>`
+
+The `page.html` file is the template, so open it and add the following to it:
 ``` html
 <!DOCTYPE html>
 <html lang="en">
@@ -136,9 +148,6 @@ Open `page.html` and add the following to it:
     </body>
 </html>
 ```
-### What is Jinja?
-
-Think of a Jinja template as a blueprint for a web page. The template contains mostly ordinary HTML, but it also includes placeholders and simple expressions that Jinja replaces with real values when your program runs. Rather than writing a separate HTML file for every page, you define the shared layout once and let Jinja insert the unique content for each page during the build process.
 ### Modify the first-post.md file
 
 Open `first-post.md` and completely replace its contents with the following:
@@ -240,13 +249,14 @@ def greet(name):
 ### What happened in the script?
 
 Several things happen in `build.py`.
-`Environment` creates its own form of file path for locating and loading templates. In this case "page.html. "
+`Environment` creates its own form of file path for locating and loading templates, in this case `page.html`. 
 `template.render` creates HTML by receiving parameters information: title, author, date, and content.
 If you look at page.html, you see corresponding variables in double curly brace pairs like this`{{ }}` for title, author, date, and content. These are placeholders into which the `template.render` function places content.
 # Build all pages 
 
 At this point, you learned how to convert markdown to HTML using Markdown library and use a Template along with Jinja to convert a single page,  but now you need to build an entire site.
 Our site will contain several pages that all share the same overall structure. Each page will  have the same <head> section, stylesheet, navigation, and footer, while only the main content changes. You will use the `page.html` template that you’ve already seen, and you will modify `build.py` to convert all markdown files.
+
 As a preview, here is the pipeline:
 ```
 Delete previous output
@@ -275,7 +285,6 @@ Render HTML into Jinja template
 
 Write output HTML
 ```
-
 
 ## Add content to other Markdown files
 
@@ -326,7 +335,7 @@ The goal isn't to build a full-featured publishing system. It's to demonstrate h
 
 This project can be extended in many ways, including automatically generating navigation, adding article metadata, and supporting more sophisticated templates.
 ```
-Finally, replace the content in build.py with this code:
+Finally, replace the content in `build.py` with this code:
 ``` python
 from pathlib import Path
 import shutil
@@ -357,7 +366,7 @@ template = environment.get_template("page.html")
 
 # Build each Markdown file
 # markdown_file is a pathlib thing.
-for markdown_file in CONTENT_DIR.rglob("*.md"):
+for markdown_file in CONTENT_DIR.glob("*.md"):
     markdown_text = markdown_file.read_text(encoding="utf-8")
 
     # markdodwn is from the markdown lib
@@ -379,31 +388,35 @@ for markdown_file in CONTENT_DIR.rglob("*.md"):
     print(f"Generated {output_file}")
 ```
 Run `build.py`. You will see that the site directory has one HTML file per Markdown file.
-## Script processing
+## How the build script works
 
 Let’s unpack the code in `build.py`.
-### Script Step 1 – Define project directories
+### Step 1 – Define project directories
 
 Project directories are defined using functionality from the ` Path` library. Markdown files are in the `content` directory. The code defines the `CONTENT_DIR` variable as that location: 
 CONTENT_DIR = Path("content")
-`Path` automatically defines it at the project root.
+
+`Path("content")` creates a path to the content directory relative to the current working directory.
+
 `STATIC_DIR` contains files that will be copied to the final output location and not be converted to HTML.
+
 `OUTPUT_DIR` defines the output location, and `TEMPLATE_DIR` is the  path to the templates.
-### Script Step 2 – Remove the contents of the output directory
+
+### Step 2 – Remove the contents of the output directory
 
 The script removes the `OUTPUT_DIR` contents:
 `shutil.rmtree (OUTPUT_DIR)` 
 `shutil` is a convenience library for working with directories.
-### Script Step 3 – Copy static assets 
+### Step 3 – Copy static assets 
 
 The script copies `STATIC_DIR` contents to the `OUTPUT_DIR`:
 shutil.copytree(STATIC_DIR, OUTPUT_DIR, dirs_exist_ok=True)
 Files in the `static` directory are copied unchanged.
-### Script Step 4 – Convert each Markdown file to HTML
+### Step 4 – Convert each Markdown file to HTML
 
 The script runs a `for in` loop:
 ``` python
-for markdown_file in CONTENT_DIR.rglob("*.md"):
+for markdown_file in CONTENT_DIR.glob("*.md"):
     markdown_text = markdown_file.read_text(encoding="utf-8")
 
     # markdodwn is from the markdown lib
@@ -423,22 +436,23 @@ for markdown_file in CONTENT_DIR.rglob("*.md"):
     output_file.write_text(rendered_html, encoding="utf-8")
 ```
 The loop:
+1.	Acquires each markdown file in the CONTENT_DIR using the `glob` method. The `*.md` argument is a glob pattern that matches files ending in `.md`. 
 
-1.	Reads the contents of the Markdown file.
+2.	Reads the contents of the Markdown file.
 The `markdown_file`is a path variable that includes functionality for reading its contents:
 `markdown_text = markdown_file.read_text(encoding="utf-8")`
 Note: `read_text` includes functionality for opening, reading, and closing a file in a single call.
 
-2.	Converts Markdown to HTML and define the HTML file name:
+3.	Converts Markdown to HTML and define the HTML file name:
 ``` python
 html_content = markdown.markdown(markdown_text)
 page_title = markdown_file.stem.replace("-", " ").title()
 ```
 
-3.	Renders the template as HTML and store it in the `rendered_html` variable.
+4.	Renders the template as HTML and store it in the `rendered_html` variable.
 `template.render` passes variables to the template, the template has corresponding variables: `title`, `author`, `date`, and `content`.
 
-4.	Defines the output_file name and write the content as an HTML file in the OUTPUT_DIR.
+5.	Defines the output_file name and write the content as an HTML file in the OUTPUT_DIR.
 ``` python
 output_file = OUTPUT_DIR / f"{markdown_file.stem}.html"
 output_file.write_text(rendered_html, encoding="utf-8")
@@ -446,14 +460,11 @@ output_file.write_text(rendered_html, encoding="utf-8")
 
 At this point in real life, you would be ready to upload your `site` folder to your server.
 
-
-<div style="width:80%; padding:6px; border-radius:5px; border:1px solid powderblue; border-left: 5px solid powderblue" >
-Note: If you are new to Python `for in` loops, think of it this way: The `markdown_file` is a variable into which each Markdown file contents is placed, one by one in each iteration of the loop.
-</div>
+Note: If you are new to Python `for in` loops, think of it this way:  Each iteration of the loop places a Path object representing the current file into `markdown_file`.
 
 # Refactor the script
 
-Currently, the script performs everything in one monolithic block, so you are going to "pythonify" the script by breaking it into functions, where each function has a specific duty. This makes is much easier to debug the script. You will create the following functions:
+Currently, the script performs everything in one monolithic block, so you are going to "pythonify" the script by breaking it into functions, where each function has a specific duty. This gives each function a clear responsibility and makes the code easier to understand, test, and maintain. You will create the following functions:
 ``` python
 build_site()
 find_markdown_files()
@@ -537,4 +548,6 @@ When you open a page, the styles are applied to it and you have a very nice-look
 # What’s next?
 Right now you can only open HTML pages individually, there are no navigation controls, and author and date are hard-coded. You’ll fix that in our next lesson.
 You will add YAML to the start of our markdown files that will allow the build script to dynamical get the “author” and “date” variables to pass to the template.render function.
-You will also programmatically generate the contents of the “index.html” file and add “previous article” and “next article” to the footer of each HTML page.
+
+For now, the page links in `index.html` are hard-coded. In the next installment, you'll have the generator create them automatically.
+You will also add “previous article” and “next article” to the footer of each HTML page.
