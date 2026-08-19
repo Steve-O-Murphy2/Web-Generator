@@ -2,6 +2,16 @@
 
 A small static-site generator built with Python. It converts Markdown files into HTML pages using Python-Markdown and Jinja2, and copies static assets into the generated site.
 
+## Contents
+
+- [What You'll Build](#what-youll-build)
+- [Project Setup](#project-setup)
+- [Convert One Markdown File](#convert-one-markdown-file)
+- [Build One Page](#build-one-page)
+- [Build All Pages](#build-all-pages)
+- [Refactor](#refactor)
+- [What's Next?](#whats-next)
+
 # What you'll build 
 
 In this tutorial, you'll build a simple static site generator (SSG) that converts Markdown files into complete HTML pages. 
