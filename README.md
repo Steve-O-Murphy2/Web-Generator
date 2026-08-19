@@ -82,7 +82,7 @@ Open `first-post.md` and add this content:
 # My First Blog Post
 This is my first page.
 ```
-Open build.py and completely replace the content with this:
+Open `build.py` and completely replace the content with this:
 ``` python
 
 from pathlib import Path
