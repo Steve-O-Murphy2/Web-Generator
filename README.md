@@ -28,6 +28,13 @@ project root /
       page.html      
     build.py
 ```
+
+* **content/** contains Markdown source files 
+* **templates/** contains the Jinja template 
+* **static/** contains assets copied unchanged 
+* **build.py** generates the site 
+* **site/** contains generated output 
+
 # Simplest example
 
 Before you build the entire site, let's start with the smallest useful piece of the process--converting Markdown text to HTML.
