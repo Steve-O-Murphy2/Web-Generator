@@ -10,40 +10,43 @@ STATIC_DIR = Path("static")
 OUTPUT_DIR = Path("site")
 TEMPLATE_DIR = Path("templates")
 
-# Start with a clean output directory
-if OUTPUT_DIR.exists():
-    shutil.rmtree(OUTPUT_DIR)
+def build_site():
 
-OUTPUT_DIR.mkdir()
+    if OUTPUT_DIR.exists():
+        shutil.rmtree(OUTPUT_DIR)
 
-# Copy static assets
-shutil.copytree(STATIC_DIR, OUTPUT_DIR, dirs_exist_ok=True)
+    OUTPUT_DIR.mkdir()
 
-# Load the Jinja template
-# Environment is jinja
-environment = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
-# Template is jinja
-template = environment.get_template("page.html")
+    markdown_files = find_markdown_files()
 
-# Build each Markdown file
-# markdown_file is a pathlib thing.
-for markdown_file in CONTENT_DIR.rglob("*.md"):
+    for markdown_file in markdown_files:
+        html = convert_markdown(markdown_file)
+        render_page(markdown_file, html)
+
+    copy_static()
+
+def find_markdown_files():
+    return CONTENT_DIR.glob("*.md")
+
+def convert_markdown(markdown_file):
     markdown_text = markdown_file.read_text(encoding="utf-8")
+    return markdown.markdown(markdown_text)
 
-    # markdodwn is from the markdown lib
-    # convert the file to html
-    html_content = markdown.markdown(markdown_text)
-
+def render_page(markdown_file, html):
+    environment = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
+    template = environment.get_template("page.html")
     page_title = markdown_file.stem.replace("-", " ").title()
-
-    rendered_html = template.render(
+    rendered = template.render(
         title=page_title,
         author="Stevie",
         date="July 30, 2026",
-        content=html_content,
+        content=html,
     )
-
     output_file = OUTPUT_DIR / f"{markdown_file.stem}.html"
-    output_file.write_text(rendered_html, encoding="utf-8")
+    output_file.write_text(rendered, encoding="utf-8")
 
-    print(f"Generated {output_file}")
+def copy_static():
+    shutil.copytree(STATIC_DIR, OUTPUT_DIR, dirs_exist_ok=True)
+
+if __name__ == "__main__":
+    build_site()
